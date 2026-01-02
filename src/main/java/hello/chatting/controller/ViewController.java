@@ -1,45 +1,46 @@
 package hello.chatting.controller;
 
+import hello.chatting.user.dto.UserDto;
 import hello.chatting.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
-@Controller
+@RestController
 @RequiredArgsConstructor
 public class ViewController {
 
     private final UserService userService;
 
     @GetMapping("/")
-    public String main() {return "main";}
+    public String main() {return "main API endpoint";}
 
-    @GetMapping("/chatting")
+    @GetMapping("/api/chatting-status")
     public String chatting() {
-        return "chat/chatting";
+        return "chatting service is active";
     }
 
-    @GetMapping("/userList")
-    public String userList(Model model) throws Exception {
-        model.addAttribute("users", userService.findAll());
-        return "user/userList";
+    @GetMapping("/api/users")
+    public List<UserDto> userList() throws Exception {
+        return userService.findAll().stream()
+                .map(UserDto::toDto)
+                .collect(Collectors.toList());
     }
 
-    @GetMapping("/login")
+    @GetMapping("/api/login-status")
     public String login() {
-        return "user/login";
+        return "login service is active";
     }
 
     @GetMapping("/.well-known/appspecific/com.chrome.devtools.json")
-    @ResponseBody
     public ResponseEntity<String> chromeDevTools() {
         return ResponseEntity.ok().body(""); // Return an empty 200 OK response
     }
 
 }
-
