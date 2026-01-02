@@ -1,53 +1,68 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.css';
+import SideNav from './components/SideNav';
+import ChatRoom from './components/ChatRoom'; // Import the new component
 
 function App() {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [currentView, setCurrentView] = useState({ type: 'welcome', id: null });
 
-  useEffect(() => {
-    // Fetches users from the Spring Boot API
-    fetch('http://localhost:8087/api/users')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        setUsers(data);
-        setLoading(false);
-      })
-      .catch(error => {
-        setError(error.toString());
-        setLoading(false);
+  // This will be fetched from an API in a future step
+  const dummyUser = {
+    id: 1, // Add user ID for API calls
+    loginId: 'test', // Add loginId, which is used as sender
+    name: 'JaeHyeong',
+    profileImage: '/images/orgProfile.png'
+  };
+
+  const handleSelectRoom = (roomId) => {
+    setCurrentView({ type: 'room', id: roomId });
+  };
+
+  const handleSelectFriend = async (friendLoginId) => {
+    try {
+      const response = await fetch('http://localhost:8087/api/chatRoom/find', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: dummyUser.loginId,
+          friendId: friendLoginId
+        }),
       });
-  }, []); // The empty dependency array makes this effect run once on mount
+
+      if (!response.ok) {
+        throw new Error('Failed to find or create a private chat room.');
+      }
+
+      const room = await response.json();
+      setCurrentView({ type: 'room', id: room.id });
+
+    } catch (error) {
+      console.error("Error opening chat with friend:", error);
+      // Optionally, show an error to the user
+    }
+  };
+
 
   return (
     <div className="app-container">
-      <nav className="sidebar">
-        <h2>Chat Project</h2>
-        <ul>
-          <li>My Profile</li>
-          <li>Friends</li>
-          <li>Chat Rooms</li>
-        </ul>
-      </nav>
+      {/* Pass down the event handlers to the SideNav component */}
+      <SideNav 
+        loginUser={dummyUser} 
+        onSelectRoom={handleSelectRoom}
+        onSelectFriend={handleSelectFriend}
+      />
+
       <main className="main-content">
         <header className="main-header">
           <h1>Welcome!</h1>
         </header>
         <div className="content-body">
-          <h2>User List from API</h2>
-          {loading && <p>Loading users...</p>}
-          {error && <p>Error fetching users: {error}</p>}
-          <ul>
-            {users.map(user => (
-              <li key={user.id}>{user.name} ({user.email})</li>
-            ))}
-          </ul>
+          {/* Display content based on the current view state */}
+          {currentView.type === 'welcome' && <p>Main content area. Select a chat to begin.</p>}
+          {currentView.type === 'room' && <ChatRoom roomId={currentView.id} loginUser={dummyUser} />}
+          {currentView.type === 'friend' && <p>Selected Friend ID: {currentView.id}</p>}
         </div>
       </main>
     </div>

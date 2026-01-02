@@ -21,6 +21,7 @@ public class SecurityConfig {
     // API-focused whitelist
     private static final String[] WHITELIST = {
             "/",
+            "/ws-stomp/**", // Allow WebSocket connections
             "/api/**", // Allow all /api paths for now for easier development
             "/oauth2/**",
             "/css/**",

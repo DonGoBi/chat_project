@@ -4,21 +4,22 @@ import hello.chatting.chat.domain.ChatMessage;
 import hello.chatting.chat.dto.AlarmMessageDto;
 import hello.chatting.chat.dto.ChatMessageDto;
 import hello.chatting.chat.service.ChatService;
+import hello.chatting.user.domain.CustomOAuth2User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
-import org.springframework.stereotype.Controller;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
-@Controller
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/api")
 public class ChatController {
 
     private final SimpMessageSendingOperations messagingTemplate;
@@ -43,18 +44,29 @@ public class ChatController {
         messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
     }
 
-    @PostMapping("/chat/messages")
-    @ResponseBody
-    public ResponseEntity<?> getMessages(@RequestBody ChatMessageDto dto) {
+    @GetMapping("/chat/rooms/{roomId}/messages")
+    public ResponseEntity<?> getMessages(@PathVariable Long roomId, @AuthenticationPrincipal CustomOAuth2User principal) {
+        String userId;
+        // TODO: 로그인 기능 구현 후 이 로직을 제거하고, principal이 null일 경우 예외를 던지도록 해야 합니다.
+        if (principal == null) {
+            userId = "test"; // 임시로 사용할 유저 ID
+        } else {
+            userId = principal.getName();
+        }
+
+        ChatMessageDto dto = ChatMessageDto.builder()
+                .roomId(roomId)
+                .sender(userId)
+                .build();
         List<ChatMessageDto> chatMessageDtoList = chatService.getMessageByUserId(dto);
         return ResponseEntity.ok(chatMessageDtoList);
     }
 
     @PostMapping("/chat/upload")
-    @ResponseBody
     public ResponseEntity<?> upload(@RequestParam("chatFile") MultipartFile chatFile,
                                     @RequestParam("roomId") Long roomId,
                                     @RequestParam("sender") String sender) throws Exception {
+        // TODO: 'sender' 파라미터를 @AuthenticationPrincipal에서 가져온 정보로 교체하여 보안 강화 필요
         ChatMessage chatMessage = chatService.chatFileUpload(chatFile, roomId, sender);
         return ResponseEntity.ok(ChatMessageDto.toDto(chatMessage));
     }
