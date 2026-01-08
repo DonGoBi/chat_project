@@ -1,0 +1,66 @@
+.login-page-container {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #121212;
+    font-family: sans-serif;
+}
+
+.login-modal {
+    background: #1f1f1f;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    text-align: center;
+    color: #fff;
+    width: 320px;
+}
+
+.login-modal h2 {
+    margin-bottom: 30px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.social-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #2c2c2c;
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 20px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.social-login-btn img {
+    width: 24px;
+    height: 24px;
+}
+
+.social-login-btn:hover {
+    background: #3c3c3c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.social-login-btn.naver {
+    background-color: #03C75A;
+    color: #fff;
+}
+.social-login-btn.kakao {
+    background-color: #FEE500;
+    color: #3C1E1E;
+}
+.social-login-btn.google {
+    background-color: #fff;
+    color: #555;
+}
+
+.social-login-btn.naver:hover { background-color: #02b34f; }
+.social-login-btn.kakao:hover { background-color: #fddb00; }
+.social-login-btn.google:hover { background-color: #e5e5e5; }

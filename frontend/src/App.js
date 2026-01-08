@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import './App.css';
 import SideNav from './components/SideNav';
-import ChatRoom from './components/ChatRoom'; // Import the new component
+import ChatRoom from './components/ChatRoom';
+import LoginPage from './pages/LoginPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import OAuth2RedirectHandler from './pages/OAuth2RedirectHandler'; // Import the redirect handler
+import { Routes, Route } from 'react-router-dom';
 
 function App() {
   const [currentView, setCurrentView] = useState({ type: 'welcome', id: null });
 
-  // This will be fetched from an API in a future step
+  // This will be fetched from an API in a future step, or stored in context
   const dummyUser = {
     id: 1, // Add user ID for API calls
     loginId: 'test', // Add loginId, which is used as sender
@@ -46,26 +50,35 @@ function App() {
 
 
   return (
-    <div className="app-container">
-      {/* Pass down the event handlers to the SideNav component */}
-      <SideNav 
-        loginUser={dummyUser} 
-        onSelectRoom={handleSelectRoom}
-        onSelectFriend={handleSelectFriend}
-      />
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/oauth/redirect" element={<OAuth2RedirectHandler />} /> {/* Add route for redirect handler */}
+      <Route 
+        path="/" 
+        element={
+          <ProtectedRoute>
+            <div className="app-container">
+              <SideNav 
+                loginUser={dummyUser} 
+                onSelectRoom={handleSelectRoom}
+                onSelectFriend={handleSelectFriend}
+              />
 
-      <main className="main-content">
-        <header className="main-header">
-          <h1>Welcome!</h1>
-        </header>
-        <div className="content-body">
-          {/* Display content based on the current view state */}
-          {currentView.type === 'welcome' && <p>Main content area. Select a chat to begin.</p>}
-          {currentView.type === 'room' && <ChatRoom roomId={currentView.id} loginUser={dummyUser} />}
-          {currentView.type === 'friend' && <p>Selected Friend ID: {currentView.id}</p>}
-        </div>
-      </main>
-    </div>
+              <main className="main-content">
+                <header className="main-header">
+                  <h1>Welcome!</h1>
+                </header>
+                <div className="content-body">
+                  {currentView.type === 'welcome' && <p>Main content area. Select a chat to begin.</p>}
+                  {currentView.type === 'room' && <ChatRoom roomId={currentView.id} loginUser={dummyUser} />}
+                  {currentView.type === 'friend' && <p>Selected Friend ID: {currentView.id}</p>}
+                </div>
+              </main>
+            </div>
+          </ProtectedRoute>
+        } 
+      />
+    </Routes>
   );
 }
 
