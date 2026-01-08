@@ -25,6 +25,7 @@ spring:
     properties:
       hibernate:
         format_sql: false
+        dialect: org.hibernate.dialect.MariaDBDialect # MariaDB Dialect 명시적 설정
   servlet:
     multipart:
       max-file-size: 20MB
@@ -46,3 +47,8 @@ server:
 file:
   upload:
     path: ./uploads
+
+# JWT 설정
+jwt:
+  secret: 'a-very-long-and-secure-secret-key-that-is-at-least-256-bits-long-for-hs256' # TODO: 실제 운영에서는 외부 환경변수로 관리해야 함
+  expiration_ms: 86400000 # 24시간 (1일)

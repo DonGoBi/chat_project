@@ -1,5 +1,6 @@
 package hello.chatting.config;
 
+import hello.chatting.jwt.OAuth2AuthenticationSuccessHandler;
 import hello.chatting.user.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,8 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler; // 성공 핸들러 주입
+
     // API-focused whitelist
     private static final String[] WHITELIST = {
             "/",
@@ -27,7 +30,8 @@ public class SecurityConfig {
             "/css/**",
             "/js/**",
             "/images/**",
-            "/login" // Keep for OAuth2 login initiation
+            "/login",
+            "/oauth/**" // React로 리다이렉트될 경로 허용
     };
 
     @Bean
@@ -50,13 +54,11 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 // formLogin is removed, as we will use token-based auth
-                // OAuth2 login settings need to be adapted for statelessness later
-                // For now, we keep the structure but will need a custom success handler to issue a token
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
                         .redirectionEndpoint(endpoint -> endpoint.baseUri("/oauth2/callback/*")) // OAuth2 콜백 URL 패턴 설정
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService)) // 사용자 정보를 가져올 때 커스텀 서비스 사용
-                        .defaultSuccessUrl("/", true) // This will need to be replaced with a token-issuing handler
+                        .successHandler(oAuth2AuthenticationSuccessHandler) // JWT 발급 및 리다이렉트를 위한 커스텀 핸들러 사용
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
