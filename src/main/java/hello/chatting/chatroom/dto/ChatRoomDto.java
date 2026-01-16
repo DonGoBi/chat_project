@@ -1,5 +1,6 @@
 package hello.chatting.chatroom.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat; // Import 추가
 import hello.chatting.chatroom.domain.ChatRoom;
 import hello.chatting.chatroom.domain.RoomType;
 import lombok.AllArgsConstructor;
@@ -19,6 +20,8 @@ public class ChatRoomDto {
     private Long id;             // BIGINT PK
     private RoomType type;         // PRIVATE / GROUP
     private String roomName;     // 그룹방 이름, 1:1은 null
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime createdAt;
 
     // Entity → DTO 변환 (화면)

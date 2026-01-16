@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './SideNav.css';
+import CreateGroupModal from './CreateGroupModal';
+import { authFetch, logout } from '../auth/auth';
+import { useNavigate } from 'react-router-dom';
 
 // A placeholder user for development when loginUser prop is not available
 const defaultUser = {
@@ -18,41 +21,43 @@ function SideNav({
     const [friends, setFriends] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+    const navigate = useNavigate();
 
-    useEffect(() => {
+    const fetchSideNavData = async () => {
         // We need a valid user to fetch data
-        if (!loginUser || loginUser.id === 0) {
+        if (!loginUser || !loginUser.loginId) {
             setLoading(false);
             setError("Login user information is not available.");
             return;
         }
 
-        const fetchSideNavData = async () => {
-            setLoading(true);
-            try {
-                const [roomsResponse, friendsResponse] = await Promise.all([
-                    fetch(`http://localhost:8087/api/chatRoom/list?userId=${loginUser.id}`),
-                    fetch('http://localhost:8087/api/users')
-                ]);
+        setLoading(true);
+        try {
+            const [roomsResponse, friendsResponse] = await Promise.all([
+                authFetch(`http://localhost:8087/api/chatRoom/list?userId=${loginUser.loginId}`),
+                authFetch('http://localhost:8087/api/users')
+            ]);
 
-                if (!roomsResponse.ok || !friendsResponse.ok) {
-                    throw new Error('Failed to fetch data from the server.');
-                }
-
-                const roomsData = await roomsResponse.json();
-                const friendsData = await friendsResponse.json();
-
-                setChatRooms(roomsData);
-                // Filter out the current user from the friends list
-                setFriends(friendsData.filter(friend => friend.id !== loginUser.id));
-                setError(null);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
+            if (!roomsResponse.ok || !friendsResponse.ok) {
+                throw new Error('Failed to fetch data from the server.');
             }
-        };
 
+            const roomsData = await roomsResponse.json();
+            const friendsData = await friendsResponse.json();
+
+            setChatRooms(roomsData);
+            // Filter out the current user from the friends list
+            setFriends(friendsData.filter(friend => friend.loginId !== loginUser.loginId));
+            setError(null);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchSideNavData();
     }, [loginUser]); // Re-run effect if loginUser changes
 
@@ -60,10 +65,21 @@ function SideNav({
         setIsCollapsed(!isCollapsed);
     };
 
+    const handleRoomCreated = (roomId) => {
+        fetchSideNavData(); // Refresh list
+        onSelectRoom(roomId); // Open the new room
+    };
+
+    const handleLogout = (e) => {
+        e.preventDefault();
+        logout();
+        navigate('/login');
+    };
+
     const renderList = (title, list, type) => {
-        if (loading) return <p>Loading {title}...</p>;
-        if (error) return <p>Error: {error}</p>;
-        if (list.length === 0) return <p>No {title} found.</p>;
+        if (loading) return <p style={{padding: '0 10px', fontSize: '12px'}}>Loading {title}...</p>;
+        if (error) return <p style={{padding: '0 10px', fontSize: '12px', color: '#ff6b6b'}}>Error: {error}</p>;
+        if (list.length === 0) return <p style={{padding: '0 10px', fontSize: '12px', color: '#888'}}>No {title} found.</p>;
 
         return list.map(item => {
             if (type === 'chat') {
@@ -98,7 +114,7 @@ function SideNav({
                     <span className="icon">💬</span>
                     <span className="menu-label">채팅</span>
                     {!isCollapsed && (
-                        <span className="group-btn">
+                        <span className="group-btn" onClick={() => setIsGroupModalOpen(true)}>
                             <img src="/images/group.png" alt="Group Chat"/>
                         </span>
                     )}
@@ -127,12 +143,19 @@ function SideNav({
                 </div>
 
                 <div className="login-buttons">
-                    <a href="/logout">
+                    <div onClick={handleLogout} className="logout-button" style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px'}}>
                         <span className="icon">🔒</span>
-                        <span className="menu-label">로그아웃</span>
-                    </a>
+                        {!isCollapsed && <span className="menu-label">로그아웃</span>}
+                    </div>
                 </div>
             </div>
+
+            <CreateGroupModal 
+                isOpen={isGroupModalOpen} 
+                onClose={() => setIsGroupModalOpen(false)}
+                loginUser={loginUser}
+                onRoomCreated={handleRoomCreated}
+            />
         </nav>
     );
 }

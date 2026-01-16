@@ -46,17 +46,9 @@ public class ChatController {
 
     @GetMapping("/chat/rooms/{roomId}/messages")
     public ResponseEntity<?> getMessages(@PathVariable Long roomId, @AuthenticationPrincipal CustomOAuth2User principal) {
-        String userId;
-        // TODO: 로그인 기능 구현 후 이 로직을 제거하고, principal이 null일 경우 예외를 던지도록 해야 합니다.
-        if (principal == null) {
-            userId = "test"; // 임시로 사용할 유저 ID
-        } else {
-            userId = principal.getName();
-        }
-
         ChatMessageDto dto = ChatMessageDto.builder()
                 .roomId(roomId)
-                .sender(userId)
+                .sender(principal.getName())
                 .build();
         List<ChatMessageDto> chatMessageDtoList = chatService.getMessageByUserId(dto);
         return ResponseEntity.ok(chatMessageDtoList);
@@ -65,9 +57,8 @@ public class ChatController {
     @PostMapping("/chat/upload")
     public ResponseEntity<?> upload(@RequestParam("chatFile") MultipartFile chatFile,
                                     @RequestParam("roomId") Long roomId,
-                                    @RequestParam("sender") String sender) throws Exception {
-        // TODO: 'sender' 파라미터를 @AuthenticationPrincipal에서 가져온 정보로 교체하여 보안 강화 필요
-        ChatMessage chatMessage = chatService.chatFileUpload(chatFile, roomId, sender);
+                                    @AuthenticationPrincipal CustomOAuth2User principal) throws Exception {
+        ChatMessage chatMessage = chatService.chatFileUpload(chatFile, roomId, principal.getName());
         return ResponseEntity.ok(ChatMessageDto.toDto(chatMessage));
     }
 

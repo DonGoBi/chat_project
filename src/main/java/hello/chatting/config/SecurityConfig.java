@@ -1,5 +1,6 @@
 package hello.chatting.config;
 
+import hello.chatting.jwt.JwtAuthenticationFilter;
 import hello.chatting.jwt.OAuth2AuthenticationSuccessHandler;
 import hello.chatting.user.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -20,12 +22,13 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler; // 성공 핸들러 주입
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     // API-focused whitelist
     private static final String[] WHITELIST = {
             "/",
             "/ws-stomp/**", // Allow WebSocket connections
-            "/api/**", // Allow all /api paths for now for easier development
+            // "/api/**", // Allow all /api paths for now for easier development - Removed for JWT security
             "/oauth2/**",
             "/css/**",
             "/js/**",
@@ -53,6 +56,8 @@ public class SecurityConfig {
                         .requestMatchers(WHITELIST).permitAll() // 인증안해도 되는 url
                         .anyRequest().authenticated()
                 )
+                // Add JWT Filter
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 // formLogin is removed, as we will use token-based auth
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")

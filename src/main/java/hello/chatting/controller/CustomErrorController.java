@@ -11,35 +11,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Slf4j
 @Controller
-public class CustomErrorController implements ErrorController{
+public class CustomErrorController implements ErrorController {
 
-	@RequestMapping("error")
-	public String handleError(HttpServletRequest request) {
-		Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
-		log.error("요청 주소 : {}", request.getRequestURI());
+    @RequestMapping("/error")
+    public String handleError(HttpServletRequest request) {
+        Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+        
+        if (status != null) {
+            int statusCode = Integer.parseInt(status.toString());
+            log.error("Error occurred with status code: {} at URI: {}", statusCode, request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI));
 
-		if(status != null) {
-			int statusCode = Integer.valueOf(status.toString());
-
-			log.error("오류 코드 : {}", statusCode);
-
-			if(statusCode == HttpStatus.BAD_REQUEST.value()) {
-				return "/errorPage/400page";
-			}
-			if(statusCode == HttpStatus.UNAUTHORIZED.value()) {
-				return "/errorPage/401page";
-			}
-			if(statusCode == HttpStatus.FORBIDDEN.value()) {
-				return "/errorPage/403page";
-			}
-			if(statusCode == HttpStatus.NOT_FOUND.value()) {
-				return "/errorPage/404page";
-			}
-			if(statusCode == HttpStatus.INTERNAL_SERVER_ERROR.value()) {
-				return "/errorPage/500page";
-			}
-		}
-		
-		return "/errorPage/500page";
-	}
+            if (statusCode == HttpStatus.NOT_FOUND.value()) {
+                // 404 발생 시 리액트 라우팅이 처리할 수 있도록 index.html로 포워딩
+                return "forward:/";
+            }
+        }
+        
+        // 기타 에러는 기본 에러 처리(또는 리액트 메인)로 보냄
+        return "forward:/";
+    }
 }

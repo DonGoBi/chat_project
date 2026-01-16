@@ -32,3 +32,26 @@ export const login = (token) => {
 export const logout = () => {
   localStorage.removeItem(TOKEN_KEY);
 };
+
+export const getToken = () => {
+    return localStorage.getItem(TOKEN_KEY);
+};
+
+export const authFetch = async (url, options = {}) => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const headers = { ...options.headers };
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, { ...options, headers });
+
+    if (response.status === 401 || response.status === 403) {
+        logout();
+        window.location.href = '/login';
+        throw new Error("Unauthorized");
+    }
+
+    return response;
+};

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './ChatRoom.css';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { authFetch, getToken } from '../auth/auth';
 
 function ChatRoom({ roomId, loginUser }) {
     const [messages, setMessages] = useState([]);
@@ -19,7 +20,7 @@ function ChatRoom({ roomId, loginUser }) {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch(`http://localhost:8087/api/chat/rooms/${roomId}/messages`);
+                const response = await authFetch(`http://localhost:8087/api/chat/rooms/${roomId}/messages`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch messages.');
                 }
@@ -41,7 +42,7 @@ function ChatRoom({ roomId, loginUser }) {
 
         const connect = () => {
             const client = new Client({
-                webSocketFactory: () => new SockJS('http://localhost:8087/ws-stomp'),
+                webSocketFactory: () => new SockJS(`http://localhost:8087/ws-stomp?token=${getToken()}`),
                 onConnect: () => {
                     console.log('Connected to WebSocket');
                     client.subscribe(`/sub/chat/room/${roomId}`, (message) => {

@@ -23,4 +23,9 @@ public class UserService {
         return userList;
     }
 
+    public User findByLoginId(String loginId) throws Exception {
+        return userRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new Exception("User not found with loginId: " + loginId));
+    }
+
 }
