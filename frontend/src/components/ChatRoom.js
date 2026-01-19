@@ -117,7 +117,7 @@ function ChatRoom({ roomId, loginUser }) {
         ));
 
         if (messages.length === 0) {
-            allMessages.push(<p key="no-messages">No messages yet. Start the conversation!</p>);
+            allMessages.push(<p key="no-messages">대화를 시작하세요!</p>);
         }
         
         return allMessages;

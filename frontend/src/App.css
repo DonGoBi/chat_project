@@ -30,6 +30,7 @@ body, h1, h2, ul, p {
 }
 
 .content-body {
+  height:100%;
   padding: 20px;
   overflow-y: auto;
 }
