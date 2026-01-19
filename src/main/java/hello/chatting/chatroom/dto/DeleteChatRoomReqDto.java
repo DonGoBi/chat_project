@@ -1,5 +1,6 @@
 package hello.chatting.chatroom.dto;
 
+import hello.chatting.chatroom.domain.RoomType;
 import lombok.*;
 
 @Builder(toBuilder = true)
@@ -11,4 +12,5 @@ import lombok.*;
 public class DeleteChatRoomReqDto {
     private Long roomId;
     private String userId;
+    private RoomType type;
 }

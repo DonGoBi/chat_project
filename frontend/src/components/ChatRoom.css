@@ -5,13 +5,13 @@
     flex-direction: column;
     height: 100%;
     width: 100%;
-    background-color: #343541; /* From main#main-content */
+    background-color: #343541;
     color: #fff;
     box-sizing: border-box;
-    position: relative; /* For dropdown positioning */
+    position: relative; /* 드롭다운 위치 지정을 위해 필요 */
 }
 
-/* Chat Header */
+/* 채팅 헤더 */
 .chat-header {
     padding: 15px 20px;
     border-bottom: 1px solid #4a4a4a;
@@ -40,7 +40,27 @@
     margin-top: 2px;
 }
 
-/* Participants Dropdown */
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.exit-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.exit-btn:hover {
+    background-color: #3e3f4b;
+    transform: scale(1.1);
+}
+
+/* 참여자 목록 드롭다운 */
 .participants-dropdown {
     position: absolute;
     top: 100%;
@@ -104,7 +124,7 @@
     scrollbar-color: #555 #343541;
 }
 
-/* Message Styles */
+/* 메시지 스타일 */
 .chat-message-container {
     display: flex;
     flex-direction: column;
@@ -127,7 +147,7 @@
 }
 
 .chat-message-container.self .sender-name {
-    display: none; /* Don't show your own name */
+    display: none; /* 자신의 이름은 표시하지 않음 */
 }
 
 .chat-message {
@@ -149,11 +169,34 @@
 }
 
 
-/* Input Area */
+/* 입력 영역 */
 .chat-input-area {
     display: flex;
     padding: 20px;
     border-top: 1px solid #4a4a4a;
+    align-items: flex-end;
+}
+
+.file-btn {
+    padding: 10px;
+    margin-right: 10px;
+    background: transparent;
+    border: 1px solid #555;
+    border-radius: 50%;
+    color: #ccc;
+    cursor: pointer;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.file-btn:hover {
+    background-color: #3e3f4b;
+    color: #fff;
+    border-color: #888;
 }
 
 .chat-input-area textarea {
@@ -169,6 +212,7 @@
     font-size: 1em;
     line-height: 1.5;
     max-height: 120px;
+    min-height: 44px;
     margin-right: 10px;
 }
 
@@ -181,15 +225,52 @@
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.2s;
+    height: 44px;
 }
 
 .send-btn:hover {
     background-color: #3673d6;
 }
 
+/* 이벤트 및 시스템 메시지 */
 .chat-event-message {
     text-align: center;
-    color: #aaa;
-    font-size: 12px;
-    margin: 5px 0;
+    color: #888;
+    font-size: 0.85rem;
+    margin: 10px 0;
+    background-color: rgba(0,0,0,0.1);
+    padding: 5px 10px;
+    border-radius: 12px;
+    align-self: center;
+    width: fit-content;
+}
+
+/* 파일 첨부 스타일 */
+.chat-image {
+    max-width: 250px;
+    max-height: 250px;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #fff;
+}
+
+.file-link {
+    color: #4e92ff !important;
+    text-decoration: underline;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.chat-message-container.self .file-link {
+    color: #fff !important;
+}
+
+.chat-link {
+    color: #add8e6;
+    text-decoration: underline;
+}
+
+.chat-message-container.self .chat-link {
+    color: #fff;
 }

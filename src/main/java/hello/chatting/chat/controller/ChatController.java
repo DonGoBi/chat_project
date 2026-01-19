@@ -37,6 +37,20 @@ public class ChatController {
         ChatMessage entity = ChatMessageDto.toEntity(message);
         chatService.save(entity);
         messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
+
+        // 알림 전송
+        List<String> members = chatService.getRoomMembers(message.getRoomId());
+        for (String memberId : members) {
+            if (!memberId.equals(message.getSender())) {
+                AlarmMessageDto alarm = AlarmMessageDto.builder()
+                        .receiver(memberId)
+                        .senderName(message.getSenderName())
+                        .roomId(message.getRoomId())
+                        .content(message.getMessage())
+                        .build();
+                messagingTemplate.convertAndSendToUser(memberId, "/queue/alarm", alarm);
+            }
+        }
     }
 
     @MessageMapping("chat/typing")

@@ -4,7 +4,7 @@ import CreateGroupModal from './CreateGroupModal';
 import { authFetch, logout } from '../auth/auth';
 import { useNavigate } from 'react-router-dom';
 
-// A placeholder user for development when loginUser prop is not available
+// 개발 중 로그인 유저 정보가 없을 때 사용할 기본값
 const defaultUser = {
     id: 0,
     name: 'Guest',
@@ -13,8 +13,9 @@ const defaultUser = {
 
 function SideNav({ 
     loginUser = defaultUser, 
-    onSelectRoom = () => {}, // Default to an empty function
-    onSelectFriend = () => {} // Default to an empty function
+    onSelectRoom = () => {}, 
+    onSelectFriend = () => {},
+    refreshKey = 0 // 새로고침 트리거용 키
 }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [chatRooms, setChatRooms] = useState([]);
@@ -25,10 +26,10 @@ function SideNav({
     const navigate = useNavigate();
 
     const fetchSideNavData = async () => {
-        // We need a valid user to fetch data
+        // 유효한 사용자 정보가 필요함
         if (!loginUser || !loginUser.loginId) {
             setLoading(false);
-            setError("Login user information is not available.");
+            setError("로그인 사용자 정보가 없습니다.");
             return;
         }
 
@@ -40,14 +41,14 @@ function SideNav({
             ]);
 
             if (!roomsResponse.ok || !friendsResponse.ok) {
-                throw new Error('Failed to fetch data from the server.');
+                throw new Error('서버에서 데이터를 불러오는데 실패했습니다.');
             }
 
             const roomsData = await roomsResponse.json();
             const friendsData = await friendsResponse.json();
 
             setChatRooms(roomsData);
-            // Filter out the current user from the friends list
+            // 친구 목록에서 본인은 제외
             setFriends(friendsData.filter(friend => friend.loginId !== loginUser.loginId));
             setError(null);
         } catch (err) {
@@ -59,15 +60,15 @@ function SideNav({
 
     useEffect(() => {
         fetchSideNavData();
-    }, [loginUser]); // Re-run effect if loginUser changes
+    }, [loginUser, refreshKey]); // 로그인 유저 변경 또는 refreshKey 변경 시 재실행
 
     const toggleSidebar = () => {
         setIsCollapsed(!isCollapsed);
     };
 
     const handleRoomCreated = (roomId) => {
-        fetchSideNavData(); // Refresh list
-        onSelectRoom(roomId); // Open the new room
+        fetchSideNavData(); // 목록 새로고침
+        onSelectRoom(roomId); // 생성된 방 열기
     };
 
     const handleLogout = (e) => {
@@ -77,9 +78,9 @@ function SideNav({
     };
 
     const renderList = (title, list, type) => {
-        if (loading) return <p style={{padding: '0 10px', fontSize: '12px'}}>Loading {title}...</p>;
-        if (error) return <p style={{padding: '0 10px', fontSize: '12px', color: '#ff6b6b'}}>Error: {error}</p>;
-        if (list.length === 0) return <p style={{padding: '0 10px', fontSize: '12px', color: '#888'}}>No {title} found.</p>;
+        if (loading) return <p style={{padding: '0 10px', fontSize: '12px'}}>{title} 불러오는 중...</p>;
+        if (error) return <p style={{padding: '0 10px', fontSize: '12px', color: '#ff6b6b'}}>오류: {error}</p>;
+        if (list.length === 0) return <p style={{padding: '0 10px', fontSize: '12px', color: '#888'}}>{title} 없음.</p>;
 
         return list.map(item => {
             if (type === 'chat') {
@@ -115,14 +116,14 @@ function SideNav({
                     <span className="menu-label">채팅</span>
                     {!isCollapsed && (
                         <span className="group-btn" onClick={() => setIsGroupModalOpen(true)}>
-                            <img src="/images/group.png" alt="Group Chat"/>
+                            <img src="/images/group.png" alt="그룹 채팅 생성"/>
                         </span>
                     )}
                 </div>
             </div>
 
             <div className="chatting-list">
-                {renderList('chats', chatRooms, 'chat')}
+                {renderList('채팅방', chatRooms, 'chat')}
             </div>
 
             <div className="menu-items-container">
@@ -133,12 +134,12 @@ function SideNav({
             </div>
 
             <div className="friends-list">
-                {renderList('friends', friends, 'friend')}
+                {renderList('친구', friends, 'friend')}
             </div>
 
             <div className="user-section">
                 <div className="user-info">
-                    <img src={loginUser.profileImage || '/images/orgProfile.png'} alt="Profile" />
+                    <img src={loginUser.profileImage || '/images/orgProfile.png'} alt="프로필" />
                     <span className="user-info-name">{loginUser.name}</span>
                 </div>
 

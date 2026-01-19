@@ -1,14 +1,12 @@
 package hello.chatting.chat.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@Builder
 public class AlarmMessageDto {
     private String senderName; // 채팅 보낸 사람
     private String receiver; // 알림 받을 사람

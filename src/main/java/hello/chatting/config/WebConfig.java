@@ -12,12 +12,15 @@ import java.nio.file.Paths;
 public class WebConfig implements WebMvcConfigurer {
 
     @Value("${file.upload.path}")
-    private String uploadPath; // ex) ./uploads
+    private String uploadPath; // 예: ./uploads
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // OS 호환성을 위해 파일 URI 생성
+        String resourceLocation = Paths.get(uploadPath).toAbsolutePath().toUri().toString();
+        
         registry.addResourceHandler("/files/**")
-                .addResourceLocations("file:" + Paths.get(uploadPath).toAbsolutePath().toString() + "/");
+                .addResourceLocations(resourceLocation);
     }
 
     @Override

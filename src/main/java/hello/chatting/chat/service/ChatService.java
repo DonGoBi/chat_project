@@ -133,4 +133,11 @@ public class ChatService {
 
         return chatMessage;
     }
+
+    @Transactional(readOnly = true)
+    public List<String> getRoomMembers(Long roomId) {
+        return chatRoomMemberRepository.findByRoomId(roomId).stream()
+                .map(ChatRoomMember::getUserId)
+                .collect(Collectors.toList());
+    }
 }
