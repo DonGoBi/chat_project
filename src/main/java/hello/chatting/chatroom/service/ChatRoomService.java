@@ -78,10 +78,6 @@ public class ChatRoomService {
             );
         }
 
-        if (room == null){
-            throw new Exception("해닫 채팅방을 찾을 수 없습니다.");
-        }
-
         return room;
     }
 
@@ -97,28 +93,44 @@ public class ChatRoomService {
         List<ChatRoom> result = new ArrayList<>();
 
         for (ChatRoom room : rooms) {
-
-            ChatRoom displayRoom;
-
-            if (room.getRoomName() != null && !room.getRoomName().isBlank()) {
-                displayRoom = room;
-            } else {
-                String displayName = convertDisplayRoomName(room.getId(), userId);
-                displayRoom = room.toBuilder()
-                        .roomName(displayName)
-                        .build();
-            }
-
-            result.add(displayRoom);
+            result.add(getDisplayRoom(room, userId));
         }
 
 
         return result;
     }
 
+    public ChatRoom findById(Long roomId, String userId) throws Exception {
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new Exception("채팅방을 찾을 수 없습니다."));
+        return getDisplayRoom(room, userId);
+    }
+
+    private ChatRoom getDisplayRoom(ChatRoom room, String userId) {
+        if (room.getRoomName() != null && !room.getRoomName().isBlank()) {
+            return room;
+        } else {
+            String displayName = convertDisplayRoomName(room.getId(), userId);
+            return room.toBuilder()
+                    .roomName(displayName)
+                    .build();
+        }
+    }
+
 
     public List<ChatRoomMember> findByRoomIdAndUserIdNot(ChatRoomReqDto dto) {
         return chatRoomMemberRepository.findByRoomIdAndActiveAndUserIdNot(dto.getRoomId(), true, dto.getUserId());
+    }
+
+    public List<ChatRoomParticipantDto> getParticipants(Long roomId) {
+        return chatRoomMemberRepository.findByRoomIdAndActive(roomId, true).stream()
+                .filter(member -> member.getUser() != null) // 유저 정보가 매핑된 경우만
+                .map(member -> ChatRoomParticipantDto.builder()
+                        .loginId(member.getUser().getLoginId())
+                        .name(member.getUser().getName())
+                        .profileImage(member.getUser().getProfileImage())
+                        .build())
+                .collect(Collectors.toList());
     }
 
 

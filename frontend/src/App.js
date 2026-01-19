@@ -93,9 +93,11 @@ function App() {
                   />
 
                   <main className="main-content">
-                    <header className="main-header">
-                      <h1>Welcome, {loginUser.name}!</h1>
-                    </header>
+                    {currentView.type === 'welcome' && (
+                      <header className="main-header">
+                        <h1>Welcome, {loginUser.name}!</h1>
+                      </header>
+                    )}
                     <div className="content-body">
                       {currentView.type === 'welcome' && <p>Select a chat to begin.</p>}
                       {currentView.type === 'room' && <ChatRoom roomId={currentView.id} loginUser={loginUser} />}

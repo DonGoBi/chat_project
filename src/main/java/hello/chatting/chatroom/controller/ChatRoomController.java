@@ -67,6 +67,20 @@ public class ChatRoomController {
         return ResponseEntity.ok(ChatRoomDto.toDto(room));
     }
 
+    @GetMapping("/{roomId}")
+    public ResponseEntity<?> getRoom(@PathVariable Long roomId, @AuthenticationPrincipal CustomOAuth2User principal) throws Exception {
+        // ChatRoomDto.toDto를 사용하여 이름 변환 로직 등이 포함된 정보를 가져오기 위해 서비스 호출
+        // (기존 findAllByUserId 로직 참고하여 단일 조회용 서비스 메서드 필요할 수 있음)
+        ChatRoom room = chatRoomService.findById(roomId, principal.getName());
+        return ResponseEntity.ok(ChatRoomDto.toDto(room));
+    }
+
+    @GetMapping("/{roomId}/participants")
+    public ResponseEntity<?> getParticipants(@PathVariable Long roomId) {
+        List<ChatRoomParticipantDto> participants = chatRoomService.getParticipants(roomId);
+        return ResponseEntity.ok(participants);
+    }
+
     @DeleteMapping
     public ResponseEntity<?> deleteRoom(@RequestBody DeleteChatRoomReqDto dto) throws Exception {
         chatRoomService.deleteRoom(dto);

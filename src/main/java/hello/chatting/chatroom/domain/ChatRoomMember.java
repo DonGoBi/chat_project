@@ -42,7 +42,7 @@ public class ChatRoomMember {
     private ChatRoom chatRoom;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "loginId", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "login_id", insertable = false, updatable = false)
     private User user;
 
 }

@@ -9,23 +9,43 @@ function ChatRoom({ roomId, loginUser }) {
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [roomInfo, setRoomInfo] = useState(null);
+    const [participants, setParticipants] = useState([]);
+    const [showParticipants, setShowParticipants] = useState(false);
     const chatBoxRef = useRef(null);
-    const clientRef = useRef(null); // useRef to hold the STOMP client
+    const clientRef = useRef(null);
 
-    // Effect for fetching historical messages
+    // Effect for fetching historical messages and room info
     useEffect(() => {
         if (!roomId) return;
 
-        const fetchMessages = async () => {
+        const fetchData = async () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await authFetch(`http://localhost:8087/api/chat/rooms/${roomId}/messages`);
-                if (!response.ok) {
+                // Fetch room info (for name)
+                const roomResponse = await authFetch(`http://localhost:8087/api/chatRoom/${roomId}`);
+                if (roomResponse.ok) {
+                    const roomData = await roomResponse.json();
+                    setRoomInfo(roomData);
+                }
+
+                // Fetch participants
+                const partResponse = await authFetch(`http://localhost:8087/api/chatRoom/${roomId}/participants`);
+                if (partResponse.ok) {
+                    const partData = await partResponse.json();
+                    setParticipants(partData);
+                } else {
+                    console.error("Failed to fetch participants");
+                }
+
+                // Fetch messages
+                const msgResponse = await authFetch(`http://localhost:8087/api/chat/rooms/${roomId}/messages`);
+                if (!msgResponse.ok) {
                     throw new Error('Failed to fetch messages.');
                 }
-                const data = await response.json();
-                setMessages(data);
+                const msgData = await msgResponse.json();
+                setMessages(msgData);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -33,12 +53,13 @@ function ChatRoom({ roomId, loginUser }) {
             }
         };
 
-        fetchMessages();
+        fetchData();
+        setShowParticipants(false); // Reset dropdown when room changes
     }, [roomId]);
 
     // Effect for WebSocket connection
     useEffect(() => {
-        if (!roomId) return;
+        if (!roomId || isNaN(roomId)) return;
 
         const connect = () => {
             const client = new Client({
@@ -125,6 +146,29 @@ function ChatRoom({ roomId, loginUser }) {
 
     return (
         <div className="chat-container">
+            <div className="chat-header">
+                <div className="room-info-section" onClick={() => setShowParticipants(!showParticipants)}>
+                    <h2 className="room-title">{roomInfo?.roomName || 'Chat Room'}</h2>
+                    <span className="participant-summary">({participants.length}명)</span>
+                </div>
+                
+                {showParticipants && (
+                    <div className="participants-dropdown">
+                        <div className="dropdown-header">참여자 목록</div>
+                        <ul className="participant-list">
+                            {participants.map(p => (
+                                <li key={p.loginId} className="participant-item">
+                                    <img src={p.profileImage || '/images/orgProfile.png'} alt={p.name} className="participant-img" />
+                                    <span className="participant-name">
+                                        {p.name} {p.loginId === loginUser.loginId && '(나)'}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+            </div>
+
             <div className="chat-box" ref={chatBoxRef}>
                 {renderChatBoxContent()}
             </div>
